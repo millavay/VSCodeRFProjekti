@@ -144,17 +144,10 @@ Validate and update validation info to db
         Run Keyword If    not ${refValid}    Set Variable    ${invoicestatus}    1
         Run Keyword If    not ${refValid}    Set Variable    ${invoicecomment}    Invalid reference number
 
-<<<<<<< HEAD
-        #validate IBAN
-        ${ibanValid}=    Is Iban Correct    ${element}[2]
-        ${invoicestatus}=    Set Variable If    not ${ibanValid}    2    ${invoicestatus}
-        ${invoicecomment}=    Set Variable If    not ${ibanValid}    Invalid IBAN    ${invoicecomment}
-=======
         #jos refernce number ei validi, ei tarvitse tarkistaa IBANia, mutta muuten tarkistetaan IBAN
         ${ibanValid}=    Run Keyword And Return Status    Validate IBAN    ${element}[2]
         Run Keyword If    not ${ibanValid}    Set Variable    ${invoicestatus}    -2
         Run Keyword If    not ${ibanValid}    Set Variable    ${invoicecomment}    Invalid IBAN
->>>>>>> e2ee003602f9aea5b3f79ea76360763ccaac7aba
 
         #Validate: row amount vs header amount, tää tapahtuu ihan vaan tässä, ei keywordii
         ${rowTotal}=    Query    select sum(total) from invoicerow where invoicenumber = '${element}[0]';
