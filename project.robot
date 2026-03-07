@@ -58,9 +58,6 @@ Add invoiceRow to DB
 
 
     Disconnect From Database
-<<<<<<< HEAD
-
-=======
 *** Keywords ***
 Validate IBAN
 
@@ -72,7 +69,6 @@ Validate IBAN
     #IBAN tarkistusalogoritmi: siirretään ensimmäiset 4 merkkiä lopun jälkeen, muunnetaan kirjaimet numeroiksi (A=10, B=11, ..., Z=35) ja tarkistetaan jakojäännös 97:llä
     ${rearranged}=    Evaluate    '${cleaned}'[4:] + '${cleaned}'[:4]
     Should Be True    int(''.join([str(ord(c)-55) if c.isalpha() else c for c in '${rearranged}'])) % 97 == 1    IBAN checksum is invalid
->>>>>>> e2ee003602f9aea5b3f79ea76360763ccaac7aba
     
 *** Tasks ***
 Read CSV file to list and add data to database
