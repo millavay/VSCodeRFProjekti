@@ -6,6 +6,8 @@ Library           Collections
 Library           SeleniumLibrary
 Library           DateTime
 Library           validate.py
+Library           ibanvalidate.py
+Library           validaterowheader.py
 
 *** Variables ***
 ${Path}       C:\\VSCodeRFProjekti\\
@@ -54,13 +56,7 @@ Add invoiceRow to DB
 
 
     Disconnect From Database
-*** Keywords ***
-Validate IBAN
-    [Arguments]    ${iban}
-    ${cleaned}=    Evaluate    '${iban}'.replace(' ', '').upper()
-    Should Be True    15 <= len('${cleaned}') <= 34    IBAN length is invalid
-    ${rearranged}=    Evaluate    '${cleaned}'[4:] + '${cleaned}'[:4]
-    Should Be True    int(''.join([str(ord(c)-55) if c.isalpha() else c for c in '${rearranged}'])) % 97 == 1    IBAN checksum is invalid
+
     
 *** Tasks ***
 Read CSV file to list and add data to database
@@ -128,22 +124,21 @@ Validate and update validation info to db
 
 
         
-        
        #validate reference number, tää tulee python tiedostosta
         ${refValid}=    Run Keyword And Return Status    Is Reference Number Correct    ${element}[1]
 
-        Run Keyword If    not ${refValid}    Set Variable    ${invoicestatus}    -3
+        Run Keyword If    not ${refValid}    Set Variable    ${invoicestatus}    1
         Run Keyword If    not ${refValid}    Set Variable    ${invoicecomment}    Invalid reference number
 
-        #validate IBAN, tää RF puolella
-        ${ibanValid}=    Run Keyword And Return Status    Validate IBAN    ${element}[2]
-        Run Keyword If    not ${ibanValid}    Set Variable    ${invoicestatus}    -2
-        Run Keyword If    not ${ibanValid}    Set Variable    ${invoicecomment}    Invalid IBAN
+        #validate IBAN
+        ${ibanValid}=    Is Iban Correct    ${element}[2]
+        ${invoicestatus}=    Set Variable If    not ${ibanValid}    2    ${invoicestatus}
+        ${invoicecomment}=    Set Variable If    not ${ibanValid}    Invalid IBAN    ${invoicecomment}
 
         #Validate: row amount vs header amount, tää tapahtuu ihan vaan tässä, ei keywordii
         ${rowTotal}=    Query    select sum(total) from invoicerow where invoicenumber = '${element}[0]';
         ${amountsMatch}=    Run Keyword And Return Status    Should Be Equal    ${rowTotal}[0][0]    ${element}[3]
-        ${invoicestatus}=    Set Variable If    not ${amountsMatch}    -4    ${invoicestatus}
+        ${invoicestatus}=    Set Variable If    not ${amountsMatch}    4    ${invoicestatus}
         ${invoicecomment}=    Set Variable If    not ${amountsMatch}    Row amounts do not match header    ${invoicecomment}
         #Lisää joku if lause siihen statukseen, jos kaikki ei ok. 
         
