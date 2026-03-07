@@ -58,17 +58,6 @@ Add invoiceRow to DB
 
 
     Disconnect From Database
-*** Keywords ***
-Validate IBAN
-
-    [Arguments]    ${iban}
-    #Poistetaan välilyönnit ja muutetaan isot kirjaimet isoiksi
-    ${cleaned}=    Evaluate    '${iban}'.replace(' ', '').upper()
-    #Tarkistetaan, että IBAN on oikean pituinen
-    Should Be True    15 <= len('${cleaned}') <= 34    IBAN length is invalid
-    #IBAN tarkistusalogoritmi: siirretään ensimmäiset 4 merkkiä lopun jälkeen, muunnetaan kirjaimet numeroiksi (A=10, B=11, ..., Z=35) ja tarkistetaan jakojäännös 97:llä
-    ${rearranged}=    Evaluate    '${cleaned}'[4:] + '${cleaned}'[:4]
-    Should Be True    int(''.join([str(ord(c)-55) if c.isalpha() else c for c in '${rearranged}'])) % 97 == 1    IBAN checksum is invalid
     
 *** Tasks ***
 Read CSV file to list and add data to database
@@ -145,9 +134,9 @@ Validate and update validation info to db
         Run Keyword If    not ${refValid}    Set Variable    ${invoicecomment}    Invalid reference number
 
         #jos refernce number ei validi, ei tarvitse tarkistaa IBANia, mutta muuten tarkistetaan IBAN
-        ${ibanValid}=    Run Keyword And Return Status    Validate IBAN    ${element}[2]
-        Run Keyword If    not ${ibanValid}    Set Variable    ${invoicestatus}    -2
-        Run Keyword If    not ${ibanValid}    Set Variable    ${invoicecomment}    Invalid IBAN
+        ${ibanValid}=    Is Iban Correct    ${element}[2]
+        ${invoicestatus}=    Set Variable If    not ${ibanValid}    2    ${invoicestatus}
+        ${invoicecomment}=    Set Variable If    not ${ibanValid}    Invalid IBAN    ${invoicecomment}
 
         #Validate: row amount vs header amount, tää tapahtuu ihan vaan tässä, ei keywordii
         ${rowTotal}=    Query    select sum(total) from invoicerow where invoicenumber = '${element}[0]';
