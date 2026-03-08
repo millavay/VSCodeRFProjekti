@@ -138,9 +138,10 @@ Validate and update validation info to db
         ${invoicestatus}=    Set Variable If    not ${ibanValid}    2    ${invoicestatus}
         ${invoicecomment}=    Set Variable If    not ${ibanValid}    Invalid IBAN    ${invoicecomment}
 
-        #Validate: row amount vs header amount, tää tapahtuu ihan vaan tässä, ei keywordii
+        #Validate: row amount vs header amount, tää tapahtuu ihan vaan tässä, ei keywordii, eikä tarvi python tiedostoo myöskään. 
         ${rowTotal}=    Query    select sum(total) from invoicerow where invoicenumber = '${element}[0]';
         ${amountsMatch}=    Run Keyword And Return Status    Should Be Equal    ${rowTotal}[0][0]    ${element}[3]
+
         ${invoicestatus}=    Set Variable If    not ${amountsMatch}    4    ${invoicestatus}
         ${invoicecomment}=    Set Variable If    not ${amountsMatch}    Row amounts do not match header    ${invoicecomment}
         
